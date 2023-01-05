@@ -4,19 +4,28 @@ const SeedRandom = require("seedrandom")(34);
 
 //Входные даннные
 let data = [
-  { input: [5, 2], output: 0.5 },
-  { input: [5, 4], output: 0.5 },
-  { input: [1, 4], output: 0 },
-  { input: [1, 2], output: 0 },
-  { input: [4, 1], output: 0 },
-  { input: [4, 2], output: 0 },
-  { input: [7, 1], output: 1 },
-  { input: [6, 7], output: 1 },
-  { input: [8, 9], output: 1 },
+  { input: [5, 2], output: 1 },
+  { input: [5, 4], output: 1 },
+  { input: [1, 4], output: 1 },
+  { input: [1, 2], output: 1 },
+  { input: [4, 1], output: 1 },
+  { input: [4, 2], output: 1 },
+  { input: [7, 1], output: 0 },
+  { input: [6, 7], output: 0 },
+  { input: [8, 9], output: 0 },
   { input: [4, 12], output: 0 },
-  { input: [0, 0], output: 0 },
-  { input: [4, 4], output: 0 },
-  { input: [5, 5], output: 0.5 },
+  { input: [0, 0], output: 1 },
+  { input: [4, 0], output: 1 },
+  { input: [3, 0], output: 1 },
+  { input: [2, 10], output: 0 },
+  { input: [4, 4], output: 1 },
+  { input: [0, 5], output: 1 },
+  { input: [-1, -5], output: 1 },
+  { input: [-2, 15], output: 0 },
+  { input: [-3, 5], output: 1 },
+  { input: [-15, 55], output: 0 },
+  { input: [-45, 85], output: 0 },
+  { input: [-50, 5], output: 0 },
 ];
 
 // Веса подобранные случайным образом
@@ -174,5 +183,10 @@ for (let i = 0; i < 100000; i++) {
 showResult();
 //console.log(weight); //вывод
 
-show(4,30);
-show(6,30);
+show(4,4);
+show(2,3);
+show(4,1);
+show(3,5);
+show(1,30);
+show(-6,30);
+show(7,7);
