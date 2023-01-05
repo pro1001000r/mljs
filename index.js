@@ -1,21 +1,141 @@
 console.log("первая нейронка"); //вывод
 
-const SeedRandom = require('seedrandom')(34);
-//Входные даннные
+const SeedRandom = require("seedrandom")(34);
 
+//Входные даннные
 let data = [
-  { input: [0, 0], output: 0 },
-  { input: [1, 0], output: 1 },
+  { input: [1, 0], output: 0 },
+  { input: [0, 0], output: 1 },
   { input: [0, 1], output: 1 },
   { input: [1, 1], output: 0 },
 ];
 
+// Веса подобранные случайным образом
 const weight = {
-    i1_h1:SeedRandom(),
-    i1_h2:SeedRandom(),
-    i2_h1:SeedRandom(),
-    i2_h2:SeedRandom(),
-    h1_o1:SeedRandom(),
-    h2_o1:SeedRandom(),
+  i1_h1: SeedRandom(),
+  i1_h2: SeedRandom(),
+
+  i2_h1: SeedRandom(),
+  i2_h2: SeedRandom(),
+
+  h1_o1: SeedRandom(),
+  h2_o1: SeedRandom(),
+
+  bias_h1: SeedRandom(),
+  bias_h2: SeedRandom(),
+  bias_o1: SeedRandom(),
 };
-console.log(weight); //вывод
+
+//console.log(weight); //вывод
+
+//Функция активации (сигмоида)
+const sigmoid = (x) => {
+  return 1 / (1 + Math.exp(-x));
+};
+
+//Фукция производной от сигмоиды для обучения весов
+const p_sig = (x) => {
+  const fx = sigmoid(x);
+  return fx * (1 - fx);
+};
+
+//Сама нейронка!!!!!!!!
+const NN = (x1, x2) => {
+  //вход на скрытый
+  const h1_input = weight.i1_h1 * x1 + weight.i2_h1 * x2 + weight.bias_h1;
+  const h1 = sigmoid(h1_input);
+
+  const h2_input = weight.i1_h2 * x1 + weight.i2_h2 * x2 + weight.bias_h2;
+  const h2 = sigmoid(h2_input);
+
+  //скрытый на выход
+  const o1_input = weight.h1_o1 * h1 + weight.h2_o1 * h2 + weight.bias_o1;
+  const o1 = sigmoid(o1_input);
+
+  return o1;
+};
+
+//Вывод в консоль
+const showResult = () => {
+  data.forEach(({ input: [i1, i2], output: y }) => {
+    console.log(i1 + " XOR " + i2 + " --- " + NN(i1, i2) + " должно быть " + y); //вывод
+  });
+};
+
+showResult();
+
+//Обучение
+const train = () => {
+  const w_d = {
+    i1_h1: 0,
+    i1_h2: 0,
+    i2_h1: 0,
+    i2_h2: 0,
+    h1_o1: 0,
+    h2_o1: 0,
+    bias_h1: 0,
+    bias_h2: 0,
+    bias_o1: 0,
+  };
+
+  //цикл по данным
+  for (const {
+    input: [i1, i2],
+    output,
+  } of data) {
+    //здесь была запарка************************************
+    //вход на скрытый
+    const h1_input = weight.i1_h1 * i1 + weight.i2_h1 * i2 + weight.bias_h1;
+    const h1 = sigmoid(h1_input);
+
+    const h2_input = weight.i1_h2 * i1 + weight.i2_h2 * i2 + weight.bias_h2;
+    const h2 = sigmoid(h2_input);
+
+    //скрытый на выход
+    const o1_input = weight.h1_o1 * h1 + weight.h2_o1 * h2 + weight.bias_o1;
+    const o1 = sigmoid(o1_input);
+    //***************************************** */
+
+    //получаем результат по нейронке
+    //const o1 = NN(x1, x2);
+    //ищем разницу между конечным результатом и вычесленным нейронкой
+    const delta = output - o1;
+
+    //console.log(delta); //вывод
+    //как бы возвращаемся назад
+    const o1_d = delta * p_sig(o1_input);
+    w_d.h1_o1 += h1 * o1_d;
+    w_d.h2_o1 += h2 * o1_d;
+    w_d.bias_o1 += o1_d;
+
+    const h1_d = o1_d * p_sig(h1_input);
+  
+    w_d.i1_h1 += i1 * h1_d;
+    w_d.i2_h1 += i2 * h1_d;
+    w_d.bias_h1 += h1_d;
+
+    const h2_d = o1_d * p_sig(h2_input);
+
+    w_d.i1_h2 += i1 * h2_d;
+    w_d.i2_h2 += i2 * h2_d;
+    w_d.bias_h2 += h2_d;
+  }
+
+  return w_d;
+};
+
+const applyTrainUpdate = (deltas = train()) => {
+  Object.keys(weight).forEach((key) => {
+    weight[key] += deltas[key];
+  });
+};
+
+console.log("-----------------------------------------"); //вывод
+applyTrainUpdate();
+showResult();
+console.log("------------------------Окончательный-----------------"); //вывод
+
+for(let i = 0; i < 1000; i++){
+    applyTrainUpdate();
+};
+showResult();
