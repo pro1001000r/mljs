@@ -4,15 +4,19 @@ const SeedRandom = require("seedrandom")(34);
 
 //Входные даннные
 let data = [
-  { input: [1, 0], output: 1 },
-  { input: [0, 1], output: 1 },
-  { input: [1, 1], output: 0 },
-  { input: [0, 0], output: 0 },
-  { input: [1, 1], output: 0 },
-  { input: [1, 1], output: 0 },
-  { input: [0, 1], output: 1 },
-
-
+  { input: [5, 2], output: 1 },
+  { input: [5, 4], output: 1 },
+  { input: [1, 4], output: 0 },
+  { input: [1, 2], output: 0 },
+  { input: [4, 1], output: 1 },
+  { input: [4, 2], output: 1 },
+  { input: [7, 1], output: 1 },
+  { input: [6, 7], output: 0 },
+  { input: [8, 9], output: 0 },
+  { input: [4, 12], output: 0 },
+  { input: [0, 0], output: 1 },
+  { input: [4, 4], output: 1 },
+  { input: [5, 5], output: 1 },
 ];
 
 // Веса подобранные случайным образом
@@ -35,8 +39,6 @@ const weight = {
 
 //Функция активации (сигмоида)
 const sigmoid = (x) => 1 / (1 + Math.exp(-x));
-;
-
 //Фукция производной от сигмоиды для обучения весов
 const p_sig = (x) => {
   const fx = sigmoid(x);
@@ -63,15 +65,37 @@ const NN = (x1, x2) => {
 const showResult = () => {
   data.forEach(({ input: [i1, i2], output: y }) => {
     let res = NN(i1, i2);
-    
-    let strres = 'не подходит';
-    if (((y-res) < 0.2) || ((y-res) > 0.8)){
-        strres = 'Ок!!!';
+
+    let strres = "не подходит";
+    if ((y == 0 && res < 0.2) || (y == 1 && res > 0.8)) {
+      strres = "Ок!!!";
     }
-    
-    console.log(i1 + " XOR " + i2 + " --- " + res + " должно быть " + y + '    '+ strres); //вывод
+
+    console.log(
+      i1 + " и " + i2 + " результат: " + res + " => " + y + "    " + strres
+    ); //вывод
   });
 };
+
+//Вывод в консоль ТОЧЕЧНАЯ!!!!!!!!!!!!!!!!!!!!!!1
+const show = (i1, i2) => {
+    let res = NN(i1, i2);
+  
+    let strres = "не подходит";
+    if (res < 0.2 || res > 0.8) {
+      strres = "Ок!!!";
+      if (res < 0.2) {
+          strres += ' ЛОЖЬ';
+      }else{
+          strres += ' ИСТИНА';
+      }
+    }
+  
+    console.log(
+      "Вывод: " + i1 + " и " + i2 + " --- " + res + " должно быть " + strres
+    ); //вывод
+  };
+  
 
 //Обучение
 const train = () => {
@@ -118,7 +142,7 @@ const train = () => {
     w_d.bias_o1 += o1_d;
 
     const h1_d = o1_d * p_sig(h1_input);
-  
+
     w_d.i1_h1 += i1 * h1_d;
     w_d.i2_h1 += i2 * h1_d;
     w_d.bias_h1 += h1_d;
@@ -144,8 +168,11 @@ applyTrainUpdate();
 showResult();
 console.log("------------------------Окончательный-----------------"); //вывод
 
-for(let i = 0; i < 10000; i++){
-    applyTrainUpdate();
-};
+for (let i = 0; i < 100000; i++) {
+  applyTrainUpdate();
+}
 showResult();
 console.log(weight); //вывод
+
+show(4,30);
+show(-45,30);
