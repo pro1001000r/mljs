@@ -10,8 +10,8 @@ let data = [
   { input: [1, 2], output: 1 },
   { input: [4, 1], output: 1 },
   { input: [4, 2], output: 1 },
-  { input: [7, 1], output: 0 },
-  { input: [6, 7], output: 0 },
+  { input: [7, 1], output: 1 },
+  { input: [6, 7], output: 1 },
   { input: [8, 9], output: 0 },
   { input: [4, 12], output: 0 },
   { input: [0, 0], output: 1 },
@@ -30,25 +30,38 @@ let data = [
 
 // Веса подобранные случайным образом
 const weight = {
-  i1_h1: SeedRandom(),
-  i1_h2: SeedRandom(),
+  i1_h1: 0,
+  i1_h2: 0,
 
-  i2_h1: SeedRandom(),
-  i2_h2: SeedRandom(),
+  i2_h1: 0,
+  i2_h2: 0,
 
-  h1_o1: SeedRandom(),
-  h2_o1: SeedRandom(),
+  h1_o1: 0,
+  h2_o1: 0,
 
-  bias_h1: SeedRandom(),
-  bias_h2: SeedRandom(),
-  bias_o1: SeedRandom(),
+  bias_h1: 0,
+  bias_h2: 0,
+  bias_o1: 0,
 };
 
-//console.log(weight); //вывод
-
+const weight2 = {
+    i1_h1: SeedRandom(),
+    i1_h2: SeedRandom(),
+  
+    i2_h1: SeedRandom(),
+    i2_h2: SeedRandom(),
+  
+    h1_o1: SeedRandom(),
+    h2_o1: SeedRandom(),
+  
+    bias_h1: SeedRandom(),
+    bias_h2: SeedRandom(),
+    bias_o1: SeedRandom(),
+  };
+  
 //Функция активации (сигмоида)
 const sigmoid = (x) => 1 / (1 + Math.exp(-x));
-//Фукция производной от сигмоиды для обучения весов
+//Фукция производной от сигмоиды для обучения обратное распространение ошибки весов
 const p_sig = (x) => {
   const fx = sigmoid(x);
   return fx * (1 - fx);
@@ -166,6 +179,7 @@ const train = () => {
   return w_d;
 };
 
+//Обновляем веса в массиве
 const applyTrainUpdate = (deltas = train()) => {
   Object.keys(weight).forEach((key) => {
     weight[key] += deltas[key];
@@ -177,6 +191,7 @@ applyTrainUpdate();
 showResult();
 console.log("------------------------Окончательный-----------------"); //вывод
 
+//Само обучение сети!!!!!!!!!!!!!!!!!!!!!!
 for (let i = 0; i < 100000; i++) {
   applyTrainUpdate();
 }

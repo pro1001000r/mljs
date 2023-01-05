@@ -1,203 +1,431 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-	<meta charset="UTF-8">
-	<title>НС</title>
+  <head>
+    <meta charset="UTF-8" />
+    <title>НС</title>
 
-	<script src="brain.js/browser.min.js"></script>
+    <script src="brain.js/browser.min.js"></script>
 
-	<style>
-		body {
-			background-color: #333;
-		}
+    <style>
+      body {
+        background-color: #333;
+      }
 
-		#canv {
-			position: absolute;
-			top: 0;right: 0;bottom: 0;left: 0;
-			margin: auto;
-			background-color: white;
-		}
-	</style>
-</head>
-<body>
-	
-	<canvas id="canv" style="display: block;">Ваш браузер устарел, обновитесь.</canvas>
+      #canv {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        margin: auto;
+        background-color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="canv" style="display: block"
+      >Ваш браузер устарел, обновитесь.</canvas
+    >
 
-	<script>
-		function DCanvas(el)
-		{
-			const ctx = el.getContext('2d');
-			const pixel = 20;
+    <script>
+      //ИИ****************************************
+      let data = [];
 
-			let is_mouse_down = false;
+      // Веса подобранные случайным образом
+      let weight = {
+        i1_h1: 0.5,
+        i1_h2: 0.5,
 
-			canv.width = 500;
-			canv.height = 500;
+        i2_h1: 0.5,
+        i2_h2: 0.5,
 
-			this.drawLine = function(x1, y1, x2, y2, color = 'gray') {
-				ctx.beginPath();
-				ctx.strokeStyle = color;
-				ctx.lineJoin = 'miter';
-				ctx.lineWidth = 1;
-				ctx.moveTo(x1, y1);
-				ctx.lineTo(x2, y2);
-				ctx.stroke();
-			}
+        h1_o1: 0.5,
+        h2_o1: 0.5,
 
-			this.drawCell = function(x, y, w, h) {
-				ctx.fillStyle = 'blue';
-				ctx.strokeStyle = 'blue';
-				ctx.lineJoin = 'miter';
-				ctx.lineWidth = 1;
-				ctx.rect(x, y, w, h);
-				ctx.fill();
-			}
+        bias_h1: 0.5,
+        bias_h2: 0.5,
+        bias_o1: 0.5,
+      };
 
-			this.clear = function() {
-				ctx.clearRect(0, 0, canv.width, canv.height);
-			}
+      //Функция активации (сигмоида)
+      const sigmoid = (x) => 1 / (1 + Math.exp(-x));
+      //Фукция производной от сигмоиды для обучения обратное распространение ошибки весов
+      const p_sig = (x) => {
+        const fx = sigmoid(x);
+        return fx * (1 - fx);
+      };
 
-			this.drawGrid = function() {
-				const w = canv.width;
-				const h = canv.height;
-				const p = w / pixel;
+      //Сама нейронка!!!!!!!!
+      const NN = (x1, x2) => {
+        //вход на скрытый
+        const h1_input = weight.i1_h1 * x1 + weight.i2_h1 * x2 + weight.bias_h1;
+        const h1 = sigmoid(h1_input);
 
-				const xStep = w / p;
-				const yStep = h / p;
+        const h2_input = weight.i1_h2 * x1 + weight.i2_h2 * x2 + weight.bias_h2;
+        const h2 = sigmoid(h2_input);
 
-				for( let x = 0; x < w; x += xStep )
-				{
-					this.drawLine(x, 0, x, h);
-				}
+        //скрытый на выход
+        const o1_input = weight.h1_o1 * h1 + weight.h2_o1 * h2 + weight.bias_o1;
+        const o1 = sigmoid(o1_input);
 
-				for( let y = 0; y < h; y += yStep )
-				{
-					this.drawLine(0, y, w, y);
-				}
-			}
+        return o1;
+      };
 
-			this.calculate = function(draw = false) {
-				const w = canv.width;
-				const h = canv.height;
-				const p = w / pixel;
+      const train = () => {
+        const w_d = {
+          i1_h1: 0,
+          i1_h2: 0,
+          i2_h1: 0,
+          i2_h2: 0,
+          h1_o1: 0,
+          h2_o1: 0,
+          bias_h1: 0,
+          bias_h2: 0,
+          bias_o1: 0,
+        };
 
-				const xStep = w / p;
-				const yStep = h / p;
+        //цикл по данным
+        for (const {
+          input: [i1, i2],
+          output,
+        } of data) {
+          //Получаем заново нейронку для весов************************************
+          //вход на скрытый
+          const h1_input =
+            weight.i1_h1 * i1 + weight.i2_h1 * i2 + weight.bias_h1;
+          const h1 = sigmoid(h1_input);
 
-				const vector = [];
-				let __draw = [];
+          const h2_input =
+            weight.i1_h2 * i1 + weight.i2_h2 * i2 + weight.bias_h2;
+          const h2 = sigmoid(h2_input);
 
-				for( let x = 0; x < w; x += xStep )
-				{
-					for( let y = 0; y < h; y += yStep )
-					{
-						const data = ctx.getImageData(x, y, xStep, yStep);
+          //скрытый на выход
+          const o1_input =
+            weight.h1_o1 * h1 + weight.h2_o1 * h2 + weight.bias_o1;
+          const o1 = sigmoid(o1_input);
+          //***************************************** */
 
-						let nonEmptyPixelsCount = 0;
-						for( i = 0; i < data.data.length; i += 10 )
-						{
-							const isEmpty = data.data[i] === 0;
+          //получаем результат по нейронке
+          //const o1 = NN(x1, x2);
+          //ищем разницу между конечным результатом и вычесленным нейронкой
+          const delta = output - o1;
 
-							if( !isEmpty )
-							{
-								nonEmptyPixelsCount += 1;
-							}
-						}
+          //console.log(delta); //вывод
+          //как бы возвращаемся назад
+          const o1_d = delta * p_sig(o1_input);
+          w_d.h1_o1 += h1 * o1_d;
+          w_d.h2_o1 += h2 * o1_d;
+          w_d.bias_o1 += o1_d;
 
-						if( nonEmptyPixelsCount > 1 && draw )
-						{
-							__draw.push([x, y, xStep, yStep]);
-						}
+          const h1_d = o1_d * p_sig(h1_input);
 
-						vector.push(nonEmptyPixelsCount > 1 ? 1 : 0);
-					}
-				}
+          w_d.i1_h1 += i1 * h1_d;
+          w_d.i2_h1 += i2 * h1_d;
+          w_d.bias_h1 += h1_d;
 
-				if( draw )
-				{
-					this.clear();
-					this.drawGrid();
+          const h2_d = o1_d * p_sig(h2_input);
 
-					for( _d in __draw )
-					{
-						this.drawCell( __draw[_d][0], __draw[_d][1], __draw[_d][2], __draw[_d][3] );
-					}
-				}
+          w_d.i1_h2 += i1 * h2_d;
+          w_d.i2_h2 += i2 * h2_d;
+          w_d.bias_h2 += h2_d;
+        }
 
-				return vector;
-			}
+        return w_d;
+      };
 
-			el.addEventListener('mousedown', function(e) {
-				is_mouse_down = true;
-				ctx.beginPath();
-			})
+      //Обновляем веса в массиве
+      const applyTrainUpdate = (deltas = train()) => {
+        Object.keys(weight).forEach((key) => {
+          weight[key] += deltas[key];
+        });
+      };
 
-			el.addEventListener('mouseup', function(e) {
-				is_mouse_down = false;
-			})
+      const startNNUpdate = () => {
+        for (let i = 0; i < 100000; i++) {
+          applyTrainUpdate();
+        }
+      };
 
-			el.addEventListener('mousemove', function(e) {
-				if( is_mouse_down )
-				{
-					ctx.fillStyle = 'red';
-					ctx.strokeStyle = 'red';
-					ctx.lineWidth = pixel;
+      //Вывод в консоль
+      const showResult = () => {
+        data.forEach(({ input: [i1, i2], output: y }) => {
+          let res = NN(i1, i2);
 
-					ctx.lineTo(e.offsetX, e.offsetY);
-					ctx.stroke();
+          let strres = "не подходит";
+          if ((y == 0 && res < 0.2) || (y == 1 && res > 0.8)) {
+            strres = "Ок!!!";
+          }
 
-					ctx.beginPath();
-					ctx.arc(e.offsetX, e.offsetY, pixel / 2, 0, Math.PI * 2);
-					ctx.fill();
+          console.log(
+            i1 +
+              " и " +
+              i2 +
+              " результат: " +
+              res +
+              " => " +
+              y +
+              "    " +
+              strres
+          ); //вывод
+        });
+      };
 
-					ctx.beginPath();
-					ctx.moveTo(e.offsetX, e.offsetY);
-				}
-			})
-		}
+      //ИИ****************************************
 
-		let vector = [];
-		let net = null;
-		let train_data = [];
+      function DCanvas(el) {
+        const ctx = el.getContext("2d");
+        const pixel = 20;
 
-		const d = new DCanvas(document.getElementById('canv'));
+        let is_mouse_down = false;
 
-		document.addEventListener('keypress', function(e) {
-			if( e.key.toLowerCase() == 'c' )
-			{
-				d.clear();
-			}
+        let startNN = false;
 
-			if( e.key.toLowerCase() == 'v' )
-			{
-				vector = d.calculate(true);
-				
-				//train
-				if( confirm('Positive?') )
-				{
-					train_data.push({
-						input: vector,
-						output: {positive: 1}
-					});
-				} else
-				{
-					train_data.push({
-						input: vector,
-						output: {negative: 1}
-					});
-				}
-			}
+        canv.width = 500;
+        canv.height = 500;
 
-			if( e.key.toLowerCase() == 'b' )
-			{
-				net = new brain.NeuralNetwork();
-				net.train(train_data, {log: true});
+        this.drawLine = function (x1, y1, x2, y2, color = "gray") {
+          ctx.beginPath();
+          ctx.strokeStyle = color;
+          ctx.lineJoin = "miter";
+          ctx.lineWidth = 1;
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.stroke();
+        };
 
-				const result = brain.likely(d.calculate(), net);
-				alert(result);
-			}
-		});
-	</script>
+        this.drawCell = function (x, y, w, h) {
+          ctx.fillStyle = "blue";
+          ctx.strokeStyle = "blue";
+          ctx.lineJoin = "miter";
+          ctx.lineWidth = 1;
+          ctx.rect(x, y, w, h);
+          ctx.fill();
+        };
 
-</body>
+        this.clear = function () {
+          ctx.clearRect(0, 0, canv.width, canv.height);
+        };
+
+        this.drawGrid = function () {
+          const w = canv.width;
+          const h = canv.height;
+          const p = w / pixel;
+
+          const xStep = w / p;
+          const yStep = h / p;
+
+          for (let x = 0; x < w; x += xStep) {
+            this.drawLine(x, 0, x, h);
+          }
+
+          for (let y = 0; y < h; y += yStep) {
+            this.drawLine(0, y, w, y);
+          }
+        };
+
+        this.calculate = function (draw = false) {
+          const w = canv.width;
+          const h = canv.height;
+          const p = w / pixel;
+
+          const xStep = w / p;
+          const yStep = h / p;
+
+          const vector = [];
+          let __draw = [];
+
+          for (let x = 0; x < w; x += xStep) {
+            for (let y = 0; y < h; y += yStep) {
+              const data = ctx.getImageData(x, y, xStep, yStep);
+
+              let nonEmptyPixelsCount = 0;
+              for (i = 0; i < data.data.length; i += 10) {
+                const isEmpty = data.data[i] === 0;
+
+                if (!isEmpty) {
+                  nonEmptyPixelsCount += 1;
+                }
+              }
+
+              if (nonEmptyPixelsCount > 1 && draw) {
+                __draw.push([x, y, xStep, yStep]);
+              }
+
+              vector.push(nonEmptyPixelsCount > 1 ? 1 : 0);
+            }
+          }
+
+          if (draw) {
+            this.clear();
+            this.drawGrid();
+            console.log(__draw); //вывод
+            for (_d in __draw) {
+              this.drawCell(
+                __draw[_d][0],
+                __draw[_d][1],
+                __draw[_d][2],
+                __draw[_d][3]
+              );
+            }
+          }
+
+          return vector;
+        };
+
+        // el.addEventListener("mousedown", function (e) {
+        //   is_mouse_down = true;
+        //   ctx.beginPath();
+        // });
+
+        // el.addEventListener("mouseup", function (e) {
+        //   is_mouse_down = false;
+        // });
+
+        //Обучаем сеть
+
+        this.drawNN = function () {
+          for (let i = 0; i < 100; i++) {
+            applyTrainUpdate();
+
+            const w = canv.width;
+            const h = canv.height;
+
+            for (let x = 0; x < w; x++) {
+              for (let y = 0; y < h; y++) {
+                let t = NN(x, y);
+                console.log("x: " + x + " y:" + y + " res:" + t); //вывод
+              }
+            }
+          }
+        };
+
+        el.addEventListener("click", function (e) {
+          console.log("X:" + e.offsetX + " Y:" + e.offsetY); //вывод
+          let out = 1;
+          if (indexNN) {
+            ctx.fillStyle = "red";
+            ctx.strokeStyle = "red";
+          } else {
+            ctx.fillStyle = "blue";
+            ctx.strokeStyle = "blue";
+            out = 0;
+          }
+
+          ctx.lineWidth = pixel;
+          ctx.beginPath();
+          ctx.arc(e.offsetX, e.offsetY, pixel / 2, 0, Math.PI * 2);
+          ctx.stroke();
+          data.push({ input: [e.offsetX-250, e.offsetY-250], output: out });
+          console.log(data); //вывод
+
+          weight = {
+            i1_h1: 0.5,
+            i1_h2: 0.5,
+
+            i2_h1: 0.5,
+            i2_h2: 0.5,
+
+            h1_o1: 0.5,
+            h2_o1: 0.5,
+
+            bias_h1: 0.5,
+            bias_h2: 0.5,
+            bias_o1: 0.5,
+          };
+
+          for (let i = 0; i < 100000; i++) {
+            applyTrainUpdate();
+          }
+
+          console.log(weight); //вывод
+          showResult();
+          const w = canv.width;
+          const h = canv.height;
+
+          const p = w / pixel;
+
+          const xStep = w / p;
+          const yStep = h / p;
+
+          for (let x = 0; x < w; x += xStep) {
+            for (let y = 0; y < h; y += yStep) {
+              let t = Math.round(NN(x-250, y-250) * 255);
+
+              //console.log("x: " + x + " y:" + y + " res:" + t); //вывод
+              ctx.fillStyle = "rgb(" + t + "," + t + "," + t + ")";
+              // Рисуем квадрат
+              ctx.fillRect(x, y, 10, 10);
+            }
+          }
+        });
+
+        el.addEventListener("mousemove", function (e) {
+          if (is_mouse_down) {
+            ctx.fillStyle = "red";
+            ctx.strokeStyle = "red";
+            ctx.lineWidth = pixel;
+
+            ctx.lineTo(e.offsetX, e.offsetY);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(e.offsetX, e.offsetY, pixel / 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(e.offsetX, e.offsetY);
+          }
+        });
+      }
+
+      let vector = [];
+      let net = null;
+      let train_data = [];
+
+      let indexNN = true;
+
+      const d = new DCanvas(document.getElementById("canv"));
+
+      //d.drawGrid();
+
+      document.addEventListener("keypress", function (e) {
+        if (e.key.toLowerCase() == "a") {
+          indexNN = true;
+        }
+        if (e.key.toLowerCase() == "s") {
+          indexNN = false;
+        }
+
+        if (e.key.toLowerCase() == "c") {
+          d.clear();
+          data = [];
+        }
+
+        if (e.key.toLowerCase() == "v") {
+          vector = d.calculate(true);
+
+          //train
+          if (confirm("Positive?")) {
+            train_data.push({
+              input: vector,
+              output: { positive: 1 },
+            });
+          } else {
+            train_data.push({
+              input: vector,
+              output: { negative: 1 },
+            });
+          }
+        }
+
+        if (e.key.toLowerCase() == "b") {
+          net = new brain.NeuralNetwork();
+          net.train(train_data, { log: true });
+
+          const result = brain.likely(d.calculate(), net);
+          alert(result);
+        }
+      });
+    </script>
+  </body>
 </html>
