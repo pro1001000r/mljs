@@ -4,10 +4,15 @@ const SeedRandom = require("seedrandom")(34);
 
 //Входные даннные
 let data = [
-  { input: [1, 0], output: 0 },
-  { input: [0, 0], output: 1 },
+  { input: [1, 0], output: 1 },
   { input: [0, 1], output: 1 },
   { input: [1, 1], output: 0 },
+  { input: [0, 0], output: 0 },
+  { input: [1, 1], output: 0 },
+  { input: [1, 1], output: 0 },
+  { input: [0, 1], output: 1 },
+
+
 ];
 
 // Веса подобранные случайным образом
@@ -29,9 +34,8 @@ const weight = {
 //console.log(weight); //вывод
 
 //Функция активации (сигмоида)
-const sigmoid = (x) => {
-  return 1 / (1 + Math.exp(-x));
-};
+const sigmoid = (x) => 1 / (1 + Math.exp(-x));
+;
 
 //Фукция производной от сигмоиды для обучения весов
 const p_sig = (x) => {
@@ -58,11 +62,16 @@ const NN = (x1, x2) => {
 //Вывод в консоль
 const showResult = () => {
   data.forEach(({ input: [i1, i2], output: y }) => {
-    console.log(i1 + " XOR " + i2 + " --- " + NN(i1, i2) + " должно быть " + y); //вывод
+    let res = NN(i1, i2);
+    
+    let strres = 'не подходит';
+    if (((y-res) < 0.2) || ((y-res) > 0.8)){
+        strres = 'Ок!!!';
+    }
+    
+    console.log(i1 + " XOR " + i2 + " --- " + res + " должно быть " + y + '    '+ strres); //вывод
   });
 };
-
-showResult();
 
 //Обучение
 const train = () => {
@@ -130,12 +139,13 @@ const applyTrainUpdate = (deltas = train()) => {
   });
 };
 
-console.log("-----------------------------------------"); //вывод
+console.log("--------------------Первоначальная---------------------"); //вывод
 applyTrainUpdate();
 showResult();
 console.log("------------------------Окончательный-----------------"); //вывод
 
-for(let i = 0; i < 1000; i++){
+for(let i = 0; i < 10000; i++){
     applyTrainUpdate();
 };
 showResult();
+console.log(weight); //вывод
