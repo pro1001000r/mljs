@@ -4,10 +4,11 @@ const SeedRandom = require("seedrandom")(34);
 
 //Входные даннные
 let data = [
-  { input: [5, 2], output: 1 },
-  { input: [5, 4], output: 1 },
-  { input: [1, 4], output: 1 },
-  { input: [1, 2], output: 1 },
+  // { input: [1, 0], output: 1 },
+  // { input: [0, 0], output: 0 },
+  // { input: [1, 0], output: 1 },
+  // { input: [0, 1], output: 1 },
+  // { input: [1, 1], output: 0 },
   { input: [4, 1], output: 1 },
   { input: [4, 2], output: 1 },
   { input: [7, 1], output: 1 },
@@ -29,7 +30,7 @@ let data = [
 ];
 
 // Веса подобранные случайным образом
-const weight = {
+const weight2 = {
   i1_h1: 0,
   i1_h2: 0,
 
@@ -44,27 +45,59 @@ const weight = {
   bias_o1: 0,
 };
 
-const weight2 = {
-    i1_h1: SeedRandom(),
-    i1_h2: SeedRandom(),
-  
-    i2_h1: SeedRandom(),
-    i2_h2: SeedRandom(),
-  
-    h1_o1: SeedRandom(),
-    h2_o1: SeedRandom(),
-  
-    bias_h1: SeedRandom(),
-    bias_h2: SeedRandom(),
-    bias_o1: SeedRandom(),
-  };
-  
+const weight = {
+  i1_h1: SeedRandom(),
+  i1_h2: SeedRandom(),
+
+  i2_h1: SeedRandom(),
+  i2_h2: SeedRandom(),
+
+  h1_o1: SeedRandom(),
+  h2_o1: SeedRandom(),
+
+  bias_h1: SeedRandom(),
+  bias_h2: SeedRandom(),
+  bias_o1: SeedRandom(),
+};
+//*********************************************************************************************************** */
 //Функция активации (сигмоида)
+const sigmoid3 = (x) => (Math.exp(2 * x) - 1) / (Math.exp(2 * x) + 1);
 const sigmoid = (x) => 1 / (1 + Math.exp(-x));
+const sigmoid2 = (x) => {
+  let y = x + 0.5;
+  if (x > 0.5) {
+    y = 1;
+  }
+  if (x < -0.5) {
+    y = 0;
+  }
+  return y;
+};
+const sigmoid4 = (x) => {
+  let y = x;
+  
+  if (x < 0) {
+    y = 0;
+  }
+  return y;
+};
+
 //Фукция производной от сигмоиды для обучения обратное распространение ошибки весов
+const p_sig3 = (x) => {
+  const fx = sigmoid(x);
+  return 1 - fx**2;
+};
 const p_sig = (x) => {
   const fx = sigmoid(x);
   return fx * (1 - fx);
+};
+const p_sig4 = (x) => {
+  if (x > 0) {
+    y = 1;
+  } else {
+    y = SeedRandom();
+  }
+  return y;
 };
 
 //Сама нейронка!!!!!!!!
@@ -82,42 +115,6 @@ const NN = (x1, x2) => {
 
   return o1;
 };
-
-//Вывод в консоль
-const showResult = () => {
-  data.forEach(({ input: [i1, i2], output: y }) => {
-    let res = NN(i1, i2);
-
-    let strres = "не подходит";
-    if ((y == 0 && res < 0.2) || (y == 1 && res > 0.8)) {
-      strres = "Ок!!!";
-    }
-
-    console.log(
-      i1 + " и " + i2 + " результат: " + res + " => " + y + "    " + strres
-    ); //вывод
-  });
-};
-
-//Вывод в консоль ТОЧЕЧНАЯ!!!!!!!!!!!!!!!!!!!!!!1
-const show = (i1, i2) => {
-    let res = NN(i1, i2);
-  
-    let strres = "не подходит";
-    if (res < 0.2 || res > 0.8) {
-      strres = "Ок!!!";
-      if (res < 0.2) {
-          strres += ' ЛОЖЬ';
-      }else{
-          strres += ' ИСТИНА';
-      }
-    }
-  
-    console.log(
-      "Вывод: " + i1 + " и " + i2 + " --- " + res + " должно быть " + strres
-    ); //вывод
-  };
-  
 
 //Обучение
 const train = () => {
@@ -185,6 +182,38 @@ const applyTrainUpdate = (deltas = train()) => {
     weight[key] += deltas[key];
   });
 };
+//****************************************************************************************************************** */
+//Вывод в консоль
+const showResult = () => {
+  data.forEach(({ input: [i1, i2], output: y }) => {
+    let res = NN(i1, i2);
+
+    let strres = "не подходит";
+    if ((y == 0 && res < 0.2) || (y == 1 && res > 0.8)) {
+      strres = "Ок!!!";
+    }
+
+    console.log(
+      i1 + " и " + i2 + " результат: " + res + " => " + y + "    " + strres
+    ); //вывод
+  });
+};
+
+//Вывод в консоль ТОЧЕЧНАЯ!!!!!!!!!!!!!!!!!!!!!!1
+const show = (i1, i2) => {
+  let res = NN(i1, i2);
+
+  let strres = "не подходит";
+  if (res < 0.2 || res > 0.8) {
+    strres = "Ок!!!";
+    if (res < 0.2) {
+      strres += " ЛОЖЬ";
+    } else {
+      strres += " ИСТИНА";
+    }
+  }
+  console.log("Вывод: " + i1 + " и " + i2 + " => " + res + " " + strres); //вывод
+};
 
 console.log("--------------------Первоначальная---------------------"); //вывод
 applyTrainUpdate();
@@ -192,16 +221,16 @@ showResult();
 console.log("------------------------Окончательный-----------------"); //вывод
 
 //Само обучение сети!!!!!!!!!!!!!!!!!!!!!!
-for (let i = 0; i < 100000; i++) {
+for (let i = 0; i < 10000; i++) {
   applyTrainUpdate();
 }
 showResult();
 //console.log(weight); //вывод
 
-show(4,4);
-show(2,3);
-show(4,1);
-show(3,5);
-show(1,30);
-show(-6,30);
-show(7,7);
+show(4, 4);
+// show(2, 3);
+// show(4, 1);
+// show(3, 5);
+// show(1, 30);
+// show(-6, 30);
+// show(7, 7);

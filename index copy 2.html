@@ -32,31 +32,18 @@
       let data = [];
 
       // Веса подобранные случайным образом
-      let w = {
-        //слой h
+      let weight = {
         i1_h1: 0.5,
-        i2_h1: 0.5,
         i1_h2: 0.5,
+
+        i2_h1: 0.5,
         i2_h2: 0.5,
-        i1_h3: 0.5,
-        i2_h3: 0.5,
+
+        h1_o1: 0.5,
+        h2_o1: 0.5,
+
         bias_h1: 0.5,
         bias_h2: 0.5,
-        bias_h3: 0.5,
-
-        //слой m
-        h1_m1: 0.5,
-        h2_m1: 0.5,
-        h3_m1: 0.5,
-        h1_m2: 0.5,
-        h2_m2: 0.5,
-        h3_m2: 0.5,
-        bias_m1: 0.5,
-        bias_m2: 0.5,
-
-        //выход
-        m1_o1: 0.5,
-        m2_o1: 0.5,
         bias_o1: 0.5,
       };
 
@@ -69,28 +56,16 @@
       };
 
       //Сама нейронка!!!!!!!!
-      const NN = (i1, i2) => {
-        //вход на h
-        const h1_input = w.i1_h1 * i1 + w.i2_h1 * i2 + w.bias_h1;
+      const NN = (x1, x2) => {
+        //вход на скрытый
+        const h1_input = weight.i1_h1 * x1 + weight.i2_h1 * x2 + weight.bias_h1;
         const h1 = sigmoid(h1_input);
 
-        const h2_input = w.i1_h3 * i1 + w.i2_h3 * i2 + w.bias_h2;
+        const h2_input = weight.i1_h2 * x1 + weight.i2_h2 * x2 + weight.bias_h2;
         const h2 = sigmoid(h2_input);
 
-        const h3_input = w.i1_h3 * i1 + w.i2_h3 * i2 + w.bias_h3;
-        const h3 = sigmoid(h3_input);
-
-        //console.log(h3_input +" ==>>> "+h3); //вывод
-
-        //вход на m
-        const m1_input = w.h1_m1 * h1 + w.h2_m1 * h2 + w.h3_m1 + w.bias_m1;
-        const m1 = sigmoid(m1_input);
-
-        const m2_input = w.h1_m2 * h1 + w.h2_m2 * h2 + w.h3_m2 + w.bias_m2;
-        const m2 = sigmoid(m2_input);
-
         //скрытый на выход
-        const o1_input = w.m1_o1 * m1 + w.m2_o1 * m2 + w.bias_o1;
+        const o1_input = weight.h1_o1 * h1 + weight.h2_o1 * h2 + weight.bias_o1;
         const o1 = sigmoid(o1_input);
 
         return o1;
@@ -102,27 +77,10 @@
           i1_h2: 0,
           i2_h1: 0,
           i2_h2: 0,
+          h1_o1: 0,
+          h2_o1: 0,
           bias_h1: 0,
           bias_h2: 0,
-
-          i1_h3: 0,
-          i2_h3: 0,
-          bias_h3: 0,
-
-          //слой m
-          h1_m1: 0,
-          h2_m1: 0,
-          h3_m1: 0,
-          h1_m2: 0,
-          h2_m2: 0,
-          h3_m2: 0,
-
-          bias_m1: 0,
-          bias_m2: 0,
-
-          //выход
-          m1_o1: 0,
-          m2_o1: 0,
           bias_o1: 0,
         };
 
@@ -132,28 +90,18 @@
           output,
         } of data) {
           //Получаем заново нейронку для весов************************************
-          const h1_input = w.i1_h1 * i1 + w.i2_h1 * i2 + w.bias_h1;
+          //вход на скрытый
+          const h1_input =
+            weight.i1_h1 * i1 + weight.i2_h1 * i2 + weight.bias_h1;
           const h1 = sigmoid(h1_input);
 
-          const h2_input = w.i1_h3 * i1 + w.i2_h3 * i2 + w.bias_h2;
+          const h2_input =
+            weight.i1_h2 * i1 + weight.i2_h2 * i2 + weight.bias_h2;
           const h2 = sigmoid(h2_input);
 
-          //const h3_input = w.i1_h3 * i1 + w.i2_h3 * i2 + w.bias_h3;
-          const h3_input = 1;
-          //const h3 = sigmoid(h3_input);
-          const h3 = 1;
-
-          //вход на m
-          const m1_input =
-            w.h1_m1 * h1 + w.h2_m1 * h2 + w.h3_m1 * h3 + w.bias_m1;
-          const m1 = sigmoid(m1_input);
-
-          const m2_input =
-            w.h1_m2 * h1 + w.h2_m2 * h2 + w.h3_m2 * h3 + w.bias_m2;
-          const m2 = sigmoid(m2_input);
-
           //скрытый на выход
-          const o1_input = w.m1_o1 * m1 + w.m2_o1 * m2 + w.bias_o1;
+          const o1_input =
+            weight.h1_o1 * h1 + weight.h2_o1 * h2 + weight.bias_o1;
           const o1 = sigmoid(o1_input);
           //***************************************** */
 
@@ -164,44 +112,22 @@
 
           //console.log(delta); //вывод
           //как бы возвращаемся назад
-
-          //Сначала общая ошибка
           const o1_d = delta * p_sig(o1_input);
-          w_d.m1_o1 += m1 * o1_d;
-          w_d.m2_o1 += m2 * o1_d;
+          w_d.h1_o1 += h1 * o1_d;
+          w_d.h2_o1 += h2 * o1_d;
           w_d.bias_o1 += o1_d;
 
-          //распространяем на m
-          const m1_d = o1_d * p_sig(m1_input);
-
-          w_d.h1_m1 += h1 * m1_d;
-          w_d.h2_m1 += h2 * m1_d;
-          w_d.bias_m1 += m1_d;
-
-          const m2_d = o1_d * p_sig(m2_input);
-
-          w_d.h1_m2 += h1 * m2_d;
-          w_d.h2_m2 += h2 * m2_d;
-          w_d.bias_m2 += m2_d;
-
-          //распространяем на h
-          const h1_d = (m1_d + m2_d) * p_sig(h1_input);
+          const h1_d = o1_d * p_sig(h1_input);
 
           w_d.i1_h1 += i1 * h1_d;
           w_d.i2_h1 += i2 * h1_d;
           w_d.bias_h1 += h1_d;
 
-          const h2_d = (m1_d + m2_d) * p_sig(h2_input);
+          const h2_d = o1_d * p_sig(h2_input);
 
           w_d.i1_h2 += i1 * h2_d;
           w_d.i2_h2 += i2 * h2_d;
           w_d.bias_h2 += h2_d;
-
-          const h3_d = (m1_d + m2_d) * p_sig(h3_input);
-
-          w_d.i1_h3 += i1 * h3_d;
-          w_d.i2_h3 += i2 * h3_d;
-          w_d.bias_h3 += h3_d;
         }
 
         return w_d;
@@ -209,8 +135,8 @@
 
       //Обновляем веса в массиве
       const applyTrainUpdate = (deltas = train()) => {
-        Object.keys(w).forEach((key) => {
-          w[key] += deltas[key];
+        Object.keys(weight).forEach((key) => {
+          weight[key] += deltas[key];
         });
       };
 
@@ -218,10 +144,6 @@
         for (let i = 0; i < 100000; i++) {
           applyTrainUpdate();
         }
-      };
-
-      const showW = () => {
-        console.log(w); //вывод
       };
 
       //Вывод в консоль
@@ -361,6 +283,22 @@
 
         //Обучаем сеть
 
+        this.drawNN = function () {
+          for (let i = 0; i < 100; i++) {
+            applyTrainUpdate();
+
+            const w = canv.width;
+            const h = canv.height;
+
+            for (let x = 0; x < w; x++) {
+              for (let y = 0; y < h; y++) {
+                let t = NN(x, y);
+                console.log("x: " + x + " y:" + y + " res:" + t); //вывод
+              }
+            }
+          }
+        };
+
         el.addEventListener("click", function (e) {
           console.log("X:" + e.offsetX + " Y:" + e.offsetY); //вывод
           let out = 1;
@@ -377,12 +315,29 @@
           ctx.beginPath();
           ctx.arc(e.offsetX, e.offsetY, pixel / 2, 0, Math.PI * 2);
           ctx.stroke();
-          data.push({ input: [e.offsetX - 250, e.offsetY - 250], output: out });
+          data.push({ input: [e.offsetX-250, e.offsetY-250], output: out });
           console.log(data); //вывод
 
-          startNNUpdate();
-          applyTrainUpdate();
-          showW();
+          weight = {
+            i1_h1: 0.5,
+            i1_h2: 0.5,
+
+            i2_h1: 0.5,
+            i2_h2: 0.5,
+
+            h1_o1: 0.5,
+            h2_o1: 0.5,
+
+            bias_h1: 0.5,
+            bias_h2: 0.5,
+            bias_o1: 0.5,
+          };
+
+          for (let i = 0; i < 100000; i++) {
+            applyTrainUpdate();
+          }
+
+          console.log(weight); //вывод
           showResult();
           const w = canv.width;
           const h = canv.height;
@@ -394,7 +349,7 @@
 
           for (let x = 0; x < w; x += xStep) {
             for (let y = 0; y < h; y += yStep) {
-              let t = Math.round(NN(x - 250, y - 250) * 255);
+              let t = Math.round(NN(x-250, y-250) * 255);
 
               //console.log("x: " + x + " y:" + y + " res:" + t); //вывод
               ctx.fillStyle = "rgb(" + t + "," + t + "," + t + ")";
