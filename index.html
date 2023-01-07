@@ -34,40 +34,60 @@
       // Веса подобранные случайным образом
       let w = {
         //слой h
-        i1_h1: 0.5,
-        i2_h1: 0.5,
-        i1_h2: 0.5,
-        i2_h2: 0.5,
-        i1_h3: 0.5,
-        i2_h3: 0.5,
-        bias_h1: 0.5,
-        bias_h2: 0.5,
-        bias_h3: 0.5,
+        i1_h1: 0,
+        i2_h1: 0,
+        h1_bias: 0,
+
+        i1_h2: 0,
+        i2_h2: 0,
+        h2_bias: 0,
+
+        i1_h3: 0,
+        i2_h3: 0,
+        h3_bias: 0,
 
         //слой m
-        h1_m1: 0.5,
-        h2_m1: 0.5,
-        h3_m1: 0.5,
-        h1_m2: 0.5,
-        h2_m2: 0.5,
-        h3_m2: 0.5,
-        bias_m1: 0.5,
-        bias_m2: 0.5,
+        h1_m1: 0,
+        h2_m1: 0,
+        h3_m1: 0,
+        m1_bias: 0,
+
+        h1_m2: 0,
+        h2_m2: 0,
+        h3_m2: 0,
+        m2_bias: 0,
 
         //смещение
-        m1_s1: 0.5,
-        m2_s1: 0.5,
-        m3_s1: 0.5,
-        bias_s1: 0.5,
+        m1_s1: 0,
+        m2_s1: 0,
+        s1_bias: 0,
 
         //выход
-        s1_o1: 0.5,
-        bias_o1: 0.5,
+        s1_o1: 0,
+        s2_o1: 0,
+        o1_bias: 0,
       };
 
       //Функция активации (сигмоида)
+      const sigmoid2 = (x) => {
+        let y = 0.01 * x;
+        if (x >= 0) {
+          y = x;
+        }
+        if (x >= 1) {
+          y = 1;
+        }
+        return y;
+      };
       const sigmoid = (x) => 1 / (1 + Math.exp(-x));
       //Фукция производной от сигмоиды для обучения обратное распространение ошибки весов
+      const p_sig2 = (x) => {
+        let y = 0.01 * x;
+        if (x < 0) {
+          y = 1;
+        }
+        return y;
+      };
       const p_sig = (x) => {
         const fx = sigmoid(x);
         return fx * (1 - fx);
@@ -75,33 +95,34 @@
 
       //Сама нейронка!!!!!!!!
       const NN = (i1, i2) => {
-        //вход на h
-        const h1_input = w.i1_h1 * i1 + w.i2_h1 * i2 + w.bias_h1;
+        const h1_input = w.i1_h1 * i1 + w.i2_h1 * i2 + w.h1_bias;
         const h1 = sigmoid(h1_input);
 
-        const h2_input = w.i1_h3 * i1 + w.i2_h3 * i2 + w.bias_h2;
+        const h2_input = w.i1_h3 * i1 + w.i2_h3 * i2 + w.h2_bias;
         const h2 = sigmoid(h2_input);
 
-        //const h3_input = w.i1_h3 * i1 + w.i2_h3 * i2 + w.bias_h3;
-        const h3_input = 1;
+        const h3_input = w.i1_h3 * i1 + w.i2_h3 * i2 + w.h3_bias;
+        //const h3_input = 1;
         //const h3 = sigmoid(h3_input);
         const h3 = 1;
 
         //вход на m
-        const m1_input = w.h1_m1 * h1 + w.h2_m1 * h2 + w.h3_m1 * h3 + w.bias_m1;
+        const m1_input = w.h1_m1 * h1 + w.h2_m1 * h2 + w.h3_m1 * h3 + w.m1_bias;
         const m1 = sigmoid(m1_input);
 
-        const m2_input = w.h1_m2 * h1 + w.h2_m2 * h2 + w.h3_m2 * h3 + w.bias_m2;
+        const m2_input = w.h1_m2 * h1 + w.h2_m2 * h2 + w.h3_m2 * h3 + w.m2_bias;
         const m2 = sigmoid(m2_input);
 
         const m3 = 1;
 
         //скрытый на смещение
-        const s1_input = w.m1_s1 * m1 + w.m2_s1 * m2 + w.bias_s1;
+        const s1_input = w.m1_s1 * m1 + w.m2_s1 * m2 + w.s1_bias;
         const s1 = sigmoid(s1_input);
 
+        const s2 = 1;
+
         //смещение на выход
-        const o1_input = w.s1_o1 * s1 + w.bias_o1;
+        const o1_input = w.s1_o1 * s1 + w.s2_o1 + w.o1_bias;
         const o1 = sigmoid(o1_input);
 
         return o1;
@@ -109,37 +130,39 @@
 
       const train = () => {
         const w_d = {
+          //слой h
           i1_h1: 0,
-          i1_h2: 0,
           i2_h1: 0,
+          h1_bias: 0,
+
+          i1_h2: 0,
           i2_h2: 0,
-          bias_h1: 0,
-          bias_h2: 0,
+          h2_bias: 0,
 
           i1_h3: 0,
           i2_h3: 0,
-          bias_h3: 0,
+          h3_bias: 0,
 
           //слой m
           h1_m1: 0,
           h2_m1: 0,
           h3_m1: 0,
+          m1_bias: 0,
+
           h1_m2: 0,
           h2_m2: 0,
           h3_m2: 0,
-
-          bias_m1: 0,
-          bias_m2: 0,
+          m2_bias: 0,
 
           //смещение
           m1_s1: 0,
           m2_s1: 0,
-          m3_s1: 0,
-          bias_s1: 0,
+          s1_bias: 0,
 
           //выход
           s1_o1: 0,
-          bias_o1: 0,
+          s2_o1: 0,
+          o1_bias: 0,
         };
 
         //цикл по данным
@@ -148,34 +171,36 @@
           output,
         } of data) {
           //Получаем заново нейронку для весов************************************
-          const h1_input = w.i1_h1 * i1 + w.i2_h1 * i2 + w.bias_h1;
+          const h1_input = w.i1_h1 * i1 + w.i2_h1 * i2 + w.h1_bias;
           const h1 = sigmoid(h1_input);
 
-          const h2_input = w.i1_h3 * i1 + w.i2_h3 * i2 + w.bias_h2;
+          const h2_input = w.i1_h3 * i1 + w.i2_h3 * i2 + w.h2_bias;
           const h2 = sigmoid(h2_input);
 
-          //const h3_input = w.i1_h3 * i1 + w.i2_h3 * i2 + w.bias_h3;
-          const h3_input = 1;
+          const h3_input = w.i1_h3 * i1 + w.i2_h3 * i2 + w.h3_bias;
+          //const h3_input = 1;
           //const h3 = sigmoid(h3_input);
           const h3 = 1;
 
           //вход на m
           const m1_input =
-            w.h1_m1 * h1 + w.h2_m1 * h2 + w.h3_m1 * h3 + w.bias_m1;
+            w.h1_m1 * h1 + w.h2_m1 * h2 + w.h3_m1 * h3 + w.m1_bias;
           const m1 = sigmoid(m1_input);
 
           const m2_input =
-            w.h1_m2 * h1 + w.h2_m2 * h2 + w.h3_m2 * h3 + w.bias_m2;
+            w.h1_m2 * h1 + w.h2_m2 * h2 + w.h3_m2 * h3 + w.m2_bias;
           const m2 = sigmoid(m2_input);
 
           const m3 = 1;
 
           //скрытый на смещение
-          const s1_input = w.m1_s1 * m1 + w.m2_s1 * m2 + w.bias_s1;
+          const s1_input = w.m1_s1 * m1 + w.m2_s1 * m2 + w.s1_bias;
           const s1 = sigmoid(s1_input);
 
+          const s2 = 1;
+
           //смещение на выход
-          const o1_input = w.s1_o1 * s1 + w.bias_o1;
+          const o1_input = w.s1_o1 * s1 + w.s2_o1 + w.o1_bias;
           const o1 = sigmoid(o1_input);
           //***************************************** */
 
@@ -190,50 +215,52 @@
           //Сначала общая ошибка
           const o1_d = delta * p_sig(o1_input);
           w_d.s1_o1 += s1 * o1_d;
-          w_d.bias_o1 += o1_d;
+          w_d.s2_o1 += 1 * o1_d;
+          w_d.o1_bias += o1_d;
           //console.log(o1_d); //вывод
 
           //распространяем на s
           const s1_d = o1_d * p_sig(s1_input);
           w_d.m1_s1 += m1 * s1_d;
           w_d.m2_s1 += m2 * s1_d;
-          w_d.bias_s1 += o1_d;
-         
+          w_d.s1_bias += o1_d;
 
           //распространяем на m
           const m1_d = s1_d * p_sig(m1_input);
 
           w_d.h1_m1 += h1 * m1_d;
           w_d.h2_m1 += h2 * m1_d;
-          w_d.bias_m1 += m1_d;
+          w_d.h3_m1 += h3 * m1_d;
+          w_d.m1_bias += m1_d;
 
           const m2_d = s1_d * p_sig(m2_input);
 
           w_d.h1_m2 += h1 * m2_d;
           w_d.h2_m2 += h2 * m2_d;
-          w_d.bias_m2 += m2_d;
+          w_d.h3_m2 += h3 * m2_d;
+          w_d.m2_bias += m2_d;
 
           const m3_d = 1;
-          w_d.bias_m3 += m3_d;
+          w_d.m3_bias += m3_d;
 
           //распространяем на h
           const h1_d = (m1_d + m2_d) * p_sig(h1_input);
 
           w_d.i1_h1 += i1 * h1_d;
           w_d.i2_h1 += i2 * h1_d;
-          w_d.bias_h1 += h1_d;
+          w_d.h1_bias += h1_d;
 
           const h2_d = (m1_d + m2_d) * p_sig(h2_input);
 
           w_d.i1_h2 += i1 * h2_d;
           w_d.i2_h2 += i2 * h2_d;
-          w_d.bias_h2 += h2_d;
+          w_d.h2_bias += h2_d;
 
           const h3_d = (m1_d + m2_d) * p_sig(h3_input);
 
           w_d.i1_h3 += i1 * h3_d;
           w_d.i2_h3 += i2 * h3_d;
-          w_d.bias_h3 += h3_d;
+          w_d.h3_bias += h3_d;
         }
 
         return w_d;
@@ -259,7 +286,7 @@
       //Вывод в консоль
       const showResult = () => {
         data.forEach(({ input: [i1, i2], output: y }) => {
-          let res = NN(i1, i2);
+          let res = NN(i1 / 250, i2 / 250);
 
           let strres = "не подходит";
           if ((y == 0 && res < 0.2) || (y == 1 && res > 0.8)) {
@@ -409,7 +436,10 @@
           ctx.beginPath();
           ctx.arc(e.offsetX, e.offsetY, pixel / 2, 0, Math.PI * 2);
           ctx.stroke();
-          data.push({ input: [e.offsetX - 250, e.offsetY - 250], output: out });
+          data.push({
+            input: [(e.offsetX - 250) / 250, (e.offsetY - 250) / 250],
+            output: out,
+          });
           console.log(data); //вывод
 
           startNNUpdate();

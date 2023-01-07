@@ -2,6 +2,60 @@ console.log("первая нейронка"); //вывод
 
 const SeedRandom = require("seedrandom")(34);
 
+//******************************Работа с массивами *************************************
+//функция создания массива
+function matrixnew(row, column = 1, def = 0) {
+  var A = new Array();
+  //Указать количество строк
+  A.length = row;
+  //Указать количество столбцов
+  for (var i = 0; i < row; i++) {
+    // Создать подмассив в массиве
+    A[i] = new Array();
+    // Установить длину массива
+    A[i].length = column;
+  }
+
+  //Заполнить массив A значениями 1
+  for (var i = 0; i < A.length; i++)
+    for (var j = 0; j < A[i].length; j++) {
+      A[i][j] = def;
+      if (def == 111) {
+        A[i][j] = SeedRandom();
+      }
+    }
+  //Вывести массив A в return
+  return A;
+}
+
+//функция создания Вектора
+function matrix1(el, def = 0) {
+  var A = new Array();
+  //Указать количество строк
+  A.length = el;
+  //Указать количество столбцов
+  for (var i = 0; i < A.length; i++) {
+    //Заполнить массив A значениями 1
+    A[i] = def;
+    if (def == 111) {
+      A[i] = SeedRandom();
+    }
+  }
+
+  //Вывести массив A в return
+  return A;
+}
+
+//Функция умножения векторов
+function multiply(W, X) {
+  var sum = 0;
+  for (var i = 0; i < X.length; i++) {
+    sum += W[i] * X[i];
+  }
+
+  return sum;
+}
+
 //Входные даннные
 let data = [
   // { input: [1, 0], output: 1 },
@@ -75,7 +129,7 @@ const sigmoid2 = (x) => {
 };
 const sigmoid4 = (x) => {
   let y = x;
-  
+
   if (x < 0) {
     y = 0;
   }
@@ -85,7 +139,7 @@ const sigmoid4 = (x) => {
 //Фукция производной от сигмоиды для обучения обратное распространение ошибки весов
 const p_sig3 = (x) => {
   const fx = sigmoid(x);
-  return 1 - fx**2;
+  return 1 - fx ** 2;
 };
 const p_sig = (x) => {
   const fx = sigmoid(x);
@@ -98,6 +152,123 @@ const p_sig4 = (x) => {
     y = SeedRandom();
   }
   return y;
+};
+
+// let wh = matrixnew(2,2,111);
+// console.log(w); //вывод
+// let x = matrix1(2,111);
+// console.log(x); //вывод
+// let bh = matrix1(2,111);
+// console.log(b); //вывод
+// let sum = multiply(w[0],x) + b[0];
+// console.log(sum); //вывод
+
+const w = {
+  wh: matrixnew(2, 2, 111),
+  bh: matrix1(2, 111),
+  wo: matrixnew(1, 2, 111),
+  bo: matrix1(1, 111),
+};
+
+let wh = matrixnew(2, 2, 111);
+let bh = matrix1(2, 111);
+let wo = matrixnew(1, 2, 111);
+let bo = matrix1(1, 111);
+
+//выходной слой h
+let h = matrix1(2);
+let h_input = matrix1(2);
+//выходной слой o
+let o = matrix1(1);
+let o_input = matrix1(1);
+
+//новая нейронка на матрицах
+function MNN(i, j) {
+  var x = matrix1(2);
+  x[0] = i;
+  x[1] = j;
+
+  h_input[0] = multiply(w.wh[0], x) + w.bh[0];
+  h[0] = sigmoid(h_input[0]);
+
+  h_input[1] = multiply(w.wh[1], x) + w.bh[1];
+  h[1] = sigmoid(h_input[1]);
+
+  o_input[0] = multiply(w.wo[0], h) + w.bo[1];
+  o[0] = sigmoid(o_input[0]);
+
+  return o[0];
+}
+
+//новая нейронка на матрицах
+function Mtrain() {
+  const w_d = {
+    wh: matrixnew(2, 2),
+    bh: matrix1(2),
+    wo: matrixnew(1, 2),
+    bo: matrix1(1),
+  };
+
+  //цикл по данным
+  for (const {
+    input: [i1, i2],
+    output,
+  } of data) {
+    //Получаем заново нейронку для весов************************************
+    var x = matrix1(2);
+    x[0] = i1;
+    x[1] = i2;
+
+    h_input[0] = multiply(w.wh[0], x) + w.bh[0];
+    h[0] = sigmoid(h_input[0]);
+
+    h_input[1] = multiply(w.wh[1], x) + w.bh[1];
+    h[1] = sigmoid(h_input[1]);
+
+    o_input[0] = multiply(w.wo[0], h) + w.bo[0];
+    o[0] = sigmoid(o_input[0]);
+    //***************************************** */
+
+    //ищем разницу между конечным результатом и вычесленным нейронкой
+    const delta = output - o[0];
+
+    //console.log(delta); //вывод
+    //как бы возвращаемся назад
+    const o1_d = delta * p_sig(o_input[0]);
+    w_d.wo[0][0] += h[0] * o1_d;
+    w_d.wo[0][1] += h[1] * o1_d;
+    w_d.bo[0] += o1_d;
+
+    const h0_d = o1_d * p_sig(h_input[0]);
+
+    w_d.wh[0][0] += x[0] * h0_d;
+    w_d.wh[0][1] += x[1] * h0_d;
+    w_d.bh[0] += h0_d;
+
+    const h1_d = o1_d * p_sig(h_input[1]);
+
+    w_d.wh[1][0] += x[0] * h1_d;
+    w_d.wh[1][1] += x[1] * h1_d;
+    w_d.bh[1] += h1_d;
+  }
+
+  return w_d;
+}
+
+const w_d = Mtrain();
+console.log(w_d); //вывод
+
+//Обновляем веса в массиве
+const MapplyTrainUpdate = (deltas = Mtrain()) => {
+  // Object.keys(w).forEach((key) => {
+  //   console.log(key); //вывод
+  //   w[key] += deltas[key];
+  // });
+  for (var key in w) {
+    //if w[key] == здесь закончил (нужно сопоставить матрицы) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  }
+  console.log('обученный вывод'); //вывод
+  console.log(w); //вывод
 };
 
 //Сама нейронка!!!!!!!!
@@ -186,7 +357,7 @@ const applyTrainUpdate = (deltas = train()) => {
 //Вывод в консоль
 const showResult = () => {
   data.forEach(({ input: [i1, i2], output: y }) => {
-    let res = NN(i1, i2);
+    let res = MNN(i1, i2);
 
     let strres = "не подходит";
     if ((y == 0 && res < 0.2) || (y == 1 && res > 0.8)) {
@@ -201,7 +372,7 @@ const showResult = () => {
 
 //Вывод в консоль ТОЧЕЧНАЯ!!!!!!!!!!!!!!!!!!!!!!1
 const show = (i1, i2) => {
-  let res = NN(i1, i2);
+  let res = MNN(i1, i2);
 
   let strres = "не подходит";
   if (res < 0.2 || res > 0.8) {
@@ -216,14 +387,15 @@ const show = (i1, i2) => {
 };
 
 console.log("--------------------Первоначальная---------------------"); //вывод
-applyTrainUpdate();
+MapplyTrainUpdate();
+
 showResult();
 console.log("------------------------Окончательный-----------------"); //вывод
 
 //Само обучение сети!!!!!!!!!!!!!!!!!!!!!!
-for (let i = 0; i < 10000; i++) {
-  applyTrainUpdate();
-}
+// for (let i = 0; i < 10000; i++) {
+//   MapplyTrainUpdate();
+// }
 showResult();
 //console.log(weight); //вывод
 
