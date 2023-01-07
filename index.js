@@ -1,3 +1,5 @@
+// https://qudata.com/ml/ru/NN_CNN_Explainable.html
+
 console.log("первая нейронка"); //вывод
 
 const SeedRandom = require("seedrandom")(34);
@@ -265,6 +267,8 @@ const MapplyTrainUpdate = (deltas = Mtrain()) => {
   //   w[key] += deltas[key];
   // });
   for (var key in w) {
+
+
     //if w[key] == здесь закончил (нужно сопоставить матрицы) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   }
   console.log('обученный вывод'); //вывод
