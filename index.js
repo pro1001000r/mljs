@@ -361,7 +361,7 @@ const applyTrainUpdate = (deltas = train()) => {
 //Вывод в консоль
 const showResult = () => {
   data.forEach(({ input: [i1, i2], output: y }) => {
-    let res = MNN(i1, i2);
+    let res = NN(i1, i2);
 
     let strres = "не подходит";
     if ((y == 0 && res < 0.2) || (y == 1 && res > 0.8)) {
@@ -376,7 +376,7 @@ const showResult = () => {
 
 //Вывод в консоль ТОЧЕЧНАЯ!!!!!!!!!!!!!!!!!!!!!!1
 const show = (i1, i2) => {
-  let res = MNN(i1, i2);
+  let res = NN(i1, i2);
 
   let strres = "не подходит";
   if (res < 0.2 || res > 0.8) {
@@ -391,22 +391,22 @@ const show = (i1, i2) => {
 };
 
 console.log("--------------------Первоначальная---------------------"); //вывод
-MapplyTrainUpdate();
+applyTrainUpdate();
 
 showResult();
 console.log("------------------------Окончательный-----------------"); //вывод
 
-//Само обучение сети!!!!!!!!!!!!!!!!!!!!!!
-// for (let i = 0; i < 10000; i++) {
-//   MapplyTrainUpdate();
-// }
+// Само обучение сети!!!!!!!!!!!!!!!!!!!!!!
+for (let i = 0; i < 10000; i++) {
+  applyTrainUpdate();
+}
 showResult();
 //console.log(weight); //вывод
 
 show(4, 4);
-// show(2, 3);
-// show(4, 1);
-// show(3, 5);
-// show(1, 30);
-// show(-6, 30);
-// show(7, 7);
+show(2, 3);
+show(4, 1);
+show(3, 5);
+show(1, 30);
+show(-6, 30);
+show(7, 7);

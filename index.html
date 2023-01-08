@@ -33,6 +33,9 @@
 
       // Веса подобранные случайным образом
       let w = {
+        x1_i1: 0,
+        i1_bias: 0,
+
         //слой h
         i1_h1: 0,
         i2_h1: 0,
@@ -95,6 +98,9 @@
 
       //Сама нейронка!!!!!!!!
       const NN = (i1, i2) => {
+        // const x1_input = w.x1_i1 * i1 + w.i1_bias;
+        // const x1 = sigmoid(x1_input);
+
         const h1_input = w.i1_h1 * i1 + w.i2_h1 * i2 + w.h1_bias;
         const h1 = sigmoid(h1_input);
 
@@ -130,6 +136,9 @@
 
       const train = () => {
         const w_d = {
+          x1_i1: 0,
+          i1_bias: 0,
+          
           //слой h
           i1_h1: 0,
           i2_h1: 0,
@@ -171,6 +180,9 @@
           output,
         } of data) {
           //Получаем заново нейронку для весов************************************
+          const x1_input = w.x1_i1 * i1 + w.i1_bias;
+          const x1 = sigmoid(x1_input);
+
           const h1_input = w.i1_h1 * i1 + w.i2_h1 * i2 + w.h1_bias;
           const h1 = sigmoid(h1_input);
 
@@ -246,21 +258,27 @@
           //распространяем на h
           const h1_d = (m1_d + m2_d) * p_sig(h1_input);
 
-          w_d.i1_h1 += i1 * h1_d;
+          w_d.i1_h1 += x1 * h1_d;
           w_d.i2_h1 += i2 * h1_d;
           w_d.h1_bias += h1_d;
 
           const h2_d = (m1_d + m2_d) * p_sig(h2_input);
 
-          w_d.i1_h2 += i1 * h2_d;
+          w_d.i1_h2 += x1 * h2_d;
           w_d.i2_h2 += i2 * h2_d;
           w_d.h2_bias += h2_d;
 
           const h3_d = (m1_d + m2_d) * p_sig(h3_input);
 
-          w_d.i1_h3 += i1 * h3_d;
+          w_d.i1_h3 += x1 * h3_d;
           w_d.i2_h3 += i2 * h3_d;
           w_d.h3_bias += h3_d;
+
+          //распространяем на h
+          const i1_d = h1_d * p_sig(x1_input);
+
+          w_d.x1_i1 += x1 * i1_d;
+          w_d.i1_bias += i1_d;
         }
 
         return w_d;
