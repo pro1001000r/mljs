@@ -59,24 +59,42 @@
       // Веса подобранные случайным образом
       let w = {
         //выход
-        i1_o1: 0,
-        i0: 0,
-        o1_bias: 0,
+        i1_o1: 0.5,
+        o1_bias: 0.5,
+
+        i1_o2: 0.5,
+        o2_bias: 0.5,
+
+        o1_m1: 0.5,
+        o2_m1: 0.5,
+        m1_bias: 0.5,
       };
 
       //Сама нейронка!!!!!!!!
       const NN = (i1) => {
-        const o1_input = w.i1_o1 * (i1 - 100) + w.o1_bias;
+        const o1_input = w.i1_o1 * i1 + w.o1_bias;
         const o1 = sigmoid(o1_input);
 
-        return o1;
+        const o2_input = w.i1_o2 * i1 + w.o2_bias;
+        const o2 = sigmoid(o1_input);
+
+        const m1_input = w.o1_m1 * o1 + w.o2_m1 * o2 + w.m1_bias;
+        const m1 = sigmoid(m1_input);
+
+        return m1;
       };
 
       const train = () => {
         const w_d = {
           i1_o1: 0,
-          i0: 0,
           o1_bias: 0,
+
+          i1_o2: 0,
+          o2_bias: 0,
+
+          o1_m1: 0,
+          o2_m1: 0,
+          m1_bias: 0,
         };
 
         //цикл по данным
@@ -85,19 +103,32 @@
           output,
         } of data) {
           //Получаем заново нейронку для весов************************************
-          const o1_input = w.i1_o1 * (i1 - 100) + w.o1_bias;
+          const o1_input = w.i1_o1 * i1 + w.o1_bias;
           const o1 = sigmoid(o1_input);
+
+          const o2_input = w.i1_o2 * i1 + w.o2_bias;
+          const o2 = sigmoid(o1_input);
+
+          const m1_input = w.o1_m1 * o1 + w.o2_m1 * o2 + w.m1_bias;
+          const m1 = sigmoid(m1_input);
           //***************************************** */
 
           //ищем разницу между конечным результатом и вычесленным нейронкой
-          const delta = output - o1;
-       
-          const o1_d = delta * p_sig(o1_input);
-          w_d.i1_o1 += (i1 - w.i0) * o1_d;
-          w_d.o1_bias += o1_d;
-          //console.log(o1_d); //вывод
+          const m0_d = output - m1;
 
-          w_d.i0 = -100;
+          const m1_d = m0_d * p_sig(o1_input);
+          w_d.o1_m1 += o1 * m1_d;
+          w_d.o2_m1 += o2 * m1_d;
+          w_d.m1_bias += m1_d;
+
+          const o1_d = m1_d * p_sig(o1_input);
+          w_d.i1_o1 += i1 * o1_d;
+          w_d.o1_bias += o1_d;
+
+          const o2_d = m1_d * p_sig(o2_input);
+          w_d.i1_o2 += i1 * o2_d;
+          w_d.o2_bias += o2_d;
+          //console.log(o1_d); //вывод
         }
         return w_d;
       };
@@ -273,7 +304,7 @@
           ctx.arc(e.offsetX, e.offsetY, pixel / 2, 0, Math.PI * 2);
           ctx.stroke();
           data.push({
-            input: [(e.offsetX - 250)],
+            input: [e.offsetX / 500],
             output: out,
           });
           console.log(data); //вывод
@@ -292,7 +323,7 @@
 
           for (let x = 0; x < w; x += xStep) {
             for (let y = 0; y < h; y += yStep) {
-              let t = Math.round(NN(x - 250) * 255);
+              let t = Math.round(NN(x / 500) * 255);
 
               //console.log("x: " + x + " y:" + y + " res:" + t); //вывод
               ctx.fillStyle = "rgb(" + t + "," + t + "," + t + ")";
@@ -342,6 +373,18 @@
         if (e.key.toLowerCase() == "c") {
           d.clear();
           data = [];
+          w = {
+            //выход
+            i1_o1: 0.5,
+            o1_bias: 0.5,
+
+            i1_o2: 0.5,
+            o2_bias: 0.5,
+
+            o1_m1: 0.5,
+            o2_m1: 0.5,
+            m1_bias: 0.5,
+          };
         }
 
         if (e.key.toLowerCase() == "v") {
