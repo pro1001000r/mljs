@@ -76,7 +76,7 @@
         const o1 = sigmoid(o1_input);
 
         const o2_input = w.i1_o2 * i1 + w.o2_bias;
-        const o2 = sigmoid(o1_input);
+        const o2 = sigmoid(o2_input);
 
         const m1_input = w.o1_m1 * o1 + w.o2_m1 * o2 + w.m1_bias;
         const m1 = sigmoid(m1_input);
@@ -107,7 +107,7 @@
           const o1 = sigmoid(o1_input);
 
           const o2_input = w.i1_o2 * i1 + w.o2_bias;
-          const o2 = sigmoid(o1_input);
+          const o2 = sigmoid(o2_input);
 
           const m1_input = w.o1_m1 * o1 + w.o2_m1 * o2 + w.m1_bias;
           const m1 = sigmoid(m1_input);
@@ -152,7 +152,7 @@
 
       //Вывод в консоль
       const showResult = () => {
-        data.forEach(({ input: [i1, i2], output: y }) => {
+        data.forEach(({ input: [i1,i2], output: y }) => {
           let res = NN(i1);
 
           let strres = "не подходит";
